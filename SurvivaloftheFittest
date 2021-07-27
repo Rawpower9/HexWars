@@ -1,0 +1,938 @@
+package SurvivaloftheFittest;
+
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import java.awt.Polygon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static java.lang.Math.sqrt;
+
+import java.applet.Applet;
+import java.applet.AudioClip;
+
+public class SurvivaloftheFittest extends Canvas implements LineListener{
+	public static int squareRoot = (int) (25 * sqrt(3));
+	public static JFrame frame = new JFrame("Hex-Wars");
+	public static byte[] specialhexs = { 0, 59 };
+	public static boolean[] barracks = new boolean[60];
+	public static boolean[] tankFac = new boolean[60];
+	public static boolean[] troopGraph = new boolean[60];
+	public static byte bluetroops[] = new byte[60];
+	public static byte redtroops[] = new byte[60];
+	public static boolean[] controlPoints = new boolean[60];
+	public static boolean turn = true;
+	public static int blueMoney = 0;
+	public static int redMoney = 0;
+	public static boolean started = false;
+	public static byte[] tileColor = new byte[60];
+	public static Canvas canvas = new SurvivaloftheFittest();
+	public static Graphics g1;
+	public static byte currentTile;
+	public static boolean[] movable = new boolean[60];
+	public static boolean end = false;
+	public static Thread sleep = new Thread();
+	public static Image Soilder, Tent, Industry;
+	// input from tiles:
+	public static JTextArea info = new JTextArea();
+	public static JButton button1 = new JButton();
+	public static JTextField input1 = new JTextField();
+	public static JTextField input2 = new JTextField();
+	public static JLabel soilderLab = new JLabel();
+	public static JLabel tanksLab = new JLabel();
+	public static JButton soilderBut = new JButton();
+	public static JButton tankBut = new JButton();
+	public static JButton barracksBut = new JButton();
+	public static JButton tankFacBut = new JButton();
+	public static JLabel turnLab = new JLabel();
+	public static JButton nextTurn = new JButton();
+	public static JLabel totalMoney = new JLabel();
+	public static JLabel input1Info = new JLabel();
+	public static JLabel input2Info = new JLabel();
+	public static JOptionPane err = new JOptionPane();
+	
+	public static void wrongColorInfo() {
+		if (turn == true && tileColor[currentTile - 1] == 1) {
+			button1.setVisible(false);
+			input1.setVisible(false);
+			input2.setVisible(false);
+			soilderLab.setVisible(false);
+			tanksLab.setVisible(false);
+			soilderBut.setVisible(false);
+			tankBut.setVisible(false);
+			tankBut.setVisible(false);
+			input2Info.setVisible(false);
+			input1Info.setVisible(false);
+			barracksBut.setVisible(false);
+			tankFacBut.setVisible(false);
+		} else if (turn == false && tileColor[currentTile - 1] == 2) {
+			button1.setVisible(false);
+			input1.setVisible(false);
+			input2.setVisible(false);
+			soilderLab.setVisible(false);
+			tanksLab.setVisible(false);
+			soilderBut.setVisible(false);
+			tankBut.setVisible(false);
+			tankBut.setVisible(false);
+			input2Info.setVisible(false);
+			input1Info.setVisible(false);
+			barracksBut.setVisible(false);
+			tankFacBut.setVisible(false);
+		} else if (tileColor[currentTile - 1] == 0) {
+			button1.setVisible(false);
+			input1.setVisible(false);
+			input2.setVisible(false);
+			soilderLab.setVisible(false);
+			tanksLab.setVisible(false);
+			soilderBut.setVisible(false);
+			tankBut.setVisible(false);
+			tankBut.setVisible(false);
+			input2Info.setVisible(false);
+			input1Info.setVisible(false);
+			barracksBut.setVisible(false);
+			tankFacBut.setVisible(false);
+		}
+	}
+
+	public static void hexagon(String color, Graphics g, int x, int y) {
+		Polygon hexagon = new Polygon();
+		int[] sidesx = { x, x + 50, x + 75, x + 50, x, x - 25 };
+		int[] sidesy = { y, y, y + squareRoot, y + 2 * squareRoot, y + 2 * squareRoot, y + squareRoot };
+		if (color == "red" || color == "Red") {
+			g.setColor(new Color(250, 128, 114));
+		} else if (color == "blue" || color == "Blue") {
+			g.setColor(new Color(173, 216, 230));
+		} else {
+			g.setColor(new Color(200, 200, 200));
+		}
+		g.fillPolygon(sidesx, sidesy, 6);
+		g.setColor(new Color(0, 0, 0));
+		g.drawPolygon(sidesx, sidesy, 6);
+	}
+
+	public static void money() {
+		String mulah;
+		if (turn == true) {
+			for (byte i = 0; i < 60; i++) {
+				if (controlPoints[i] == true && tileColor[i] == 2) {
+					blueMoney += 2;
+				}
+				if (tileColor[i] == 2 && controlPoints[i] != true) {
+					blueMoney++;
+				}
+				mulah = String.valueOf(blueMoney);
+				totalMoney.setText("Blue Money: " + mulah);
+			}
+		} else {
+			for (byte i = 0; i < 60; i++) {
+				if (controlPoints[i] == true && tileColor[i] == 1) {
+					redMoney += 2;
+				}
+				if (tileColor[i] == 1 && controlPoints[i] != true) {
+					redMoney++;
+				}
+			}
+			mulah = String.valueOf(redMoney);
+			totalMoney.setText("Red Money: " + mulah);
+		}
+	}
+
+	public static void layout(Graphics g) {
+		layoutTiles(g);
+	}
+
+	public static void turn() {
+		started = true;
+		boolean stuff = false;
+		if (turn == true) {
+			turn = false;
+			turnLab.setText("Red Player Turn");
+			String mulah = String.valueOf(redMoney);
+			mulah = "Red Player Money: " + mulah;
+			totalMoney.setText(mulah);
+
+		} else {
+			turn = true;
+			turnLab.setText("Blue Player Turn");
+			String mulah = String.valueOf(blueMoney);
+			mulah = "Blue Player Money: " + mulah;
+			totalMoney.setText(mulah);
+		}
+		for (byte i = 0; i < 60; i++) {
+			movable[i] = false;
+			if (tileColor[i] == 2 && stuff == false || tileColor[i] == 0 && stuff == false) {
+				stuff = false;
+			} else {
+				stuff = true;
+			}
+		}
+		if (stuff == false) {
+			JOptionPane.showMessageDialog(null, "Blue Won Game Over");
+		} else {
+			stuff = false;
+			for (byte i = 0; i < 60; i++) {
+				if (tileColor[i] == 1 && stuff == false || tileColor[i] == 0 && stuff == false) {
+					stuff = false;
+				} else {
+					stuff = true;
+				}
+			}
+			if (stuff == false) {
+				JOptionPane.showMessageDialog(null, "Red Won Game Over");
+			}
+		}
+		money();
+		reset();
+	}
+
+	public static boolean correctMove(int hexMove) {
+		if (currentTile == 1) {// checked
+			if (hexMove == 6 || hexMove == 11) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 2 && currentTile <= 5) {// checked
+			if (hexMove == currentTile + 10 || hexMove == currentTile + 5 || hexMove == currentTile + 4) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 6 && currentTile <= 9) {// checked
+			if (hexMove == currentTile + 10 || hexMove == currentTile + 5 || hexMove == currentTile + 6
+					|| hexMove == currentTile - 4 || hexMove == currentTile - 5) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 16 && currentTile <= 19 || currentTile >= 26 && currentTile <= 29
+				|| currentTile >= 36 && currentTile <= 39 || currentTile >= 46 && currentTile <= 49) {// checked
+			if (hexMove == currentTile + 10 || hexMove == currentTile + 5 || hexMove == currentTile + 6
+					|| hexMove == currentTile - 4 || hexMove == currentTile - 5 || hexMove == currentTile - 10) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 12 && currentTile <= 15 || currentTile >= 22 && currentTile <= 25
+				|| currentTile >= 32 && currentTile <= 35 || currentTile >= 42 && currentTile <= 45) {// checked
+			if (hexMove == currentTile + 5 || hexMove == currentTile - 5 || hexMove == currentTile + 10
+					|| hexMove == currentTile - 10 || hexMove == currentTile - 6 || hexMove == currentTile + 4) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile == 60) {// checked
+			if (hexMove == 55 || hexMove == 50) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile % 10 == 1 && currentTile != 1 && currentTile != 51) {// checked
+			if (hexMove == currentTile + 5 || hexMove == currentTile - 5 || hexMove == currentTile + 10
+					|| hexMove == currentTile - 10) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile % 10 == 0 && currentTile != 60 && currentTile != 10) {// checked
+			if (hexMove == currentTile + 5 || hexMove == currentTile - 5 || hexMove == currentTile - 10
+					|| hexMove == currentTile + 10) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile == 10) {// checked
+			if (hexMove == 5 || hexMove == 15 || hexMove == 20) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile == 51) {// checked
+			if (hexMove == 41 || hexMove == 46 || hexMove == 56) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 56 && currentTile <= 59) {// checked
+			if (hexMove == currentTile - 10 || hexMove == currentTile - 5 || hexMove == currentTile - 4) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if (currentTile >= 52 && currentTile <= 55) {// checked
+			if (hexMove == currentTile + 5 || hexMove == currentTile - 5 || hexMove == currentTile - 6
+					|| hexMove == currentTile + 4 || hexMove == currentTile - 10) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public static void initialize() {
+		button1.setBounds(850, 305, 75, 40);
+		soilderLab.setBounds(1000, 142, 200, 40);
+		tankBut.setBounds(850, 207, 100, 40);
+		tanksLab.setBounds(1000, 207, 200, 40);
+		soilderBut.setBounds(850, 142, 100, 40);
+		soilderLab.setBounds(1000, 142, 200, 40);
+		input1.setBounds(1000, 272, 50, 40);
+		input2.setBounds(1000, 337, 50, 40);
+		input1Info.setBounds(1075, 272, 200, 40);
+		input2Info.setBounds(1075, 337, 200, 40);
+		info.setBounds(850, 50, 300, 67);
+		totalMoney.setBounds(1000, 20, 200, 20);
+		nextTurn.setBounds(600, 615, 65, 40);
+		turnLab.setBounds(400, 615, 200, 40);
+		barracksBut.setBounds(850, 142, 100, 40);
+		tankFacBut.setBounds(850, 207, 100, 40);
+		reset();
+		button1.setText("Send");
+		input1.setText("");
+		input2.setText("");
+		soilderLab.setText("");
+		tanksLab.setText("");
+		turnLab.setText("");
+		totalMoney.setText("");
+		soilderBut.setText("Buy");
+		tankBut.setText("Buy");
+		barracksBut.setText("Buy");
+		tankFacBut.setText("Buy");
+		nextTurn.setText("Next");
+		input1Info.setText("New Location");
+		input2Info.setText("Troop Amount");
+		tankBut.addActionListener(bt);
+		soilderBut.addActionListener(bs);
+		tankFacBut.addActionListener(btf);
+		barracksBut.addActionListener(bb);
+		nextTurn.addActionListener(nextListener);
+		for (byte i = 0; i < 60; i++) {
+			tileColor[i] = 0;
+		}
+		URL url;
+		try {
+			url = new URL("file:///C:/Users/ritvi/eclipse-workspace/Leisure/src/SurvivaloftheFittest/Hex-Wars-Soilder.png");
+			Soilder = ImageIO.read(url);
+			url = new URL("file:///C:/Users/ritvi/eclipse-workspace/Leisure/src/SurvivaloftheFittest/Hex-Wars-Industry.png");
+			Industry = ImageIO.read(url);
+			url = new URL("file:///C:/Users/ritvi/eclipse-workspace/Leisure/src/SurvivaloftheFittest/Hex-Wars-Tent.png");
+			Tent = ImageIO.read(url);			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		try {
+//			File audioFile = new File("C:\\Users\\ritvi\\Downloads\\test.wav");
+//            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+// 
+//            AudioFormat format = audioStream.getFormat();
+// 
+//            DataLine.Info info = new DataLine.Info(Clip.class, format);
+// 
+//            Clip audioClip = (Clip) AudioSystem.getLine(info);
+// 
+//            audioClip.addLineListener(this);
+// 
+//            audioClip.open(audioStream);
+//             
+//            audioClip.start();
+//
+//		} catch (MalformedURLException e) {
+//			e.printStackTrace();
+//		}
+		controlPoints[0] = true;
+		controlPoints[59] = true;
+		redtroops[0] = 5;
+		bluetroops[59] = 5;
+		troopGraph[0] = true;
+		troopGraph[59] = true;
+		tileColor[0] = 1;
+		tileColor[59] = 2;
+		barracks[0] = true;
+		barracks[59] = true;
+		frame.add(info);
+		frame.add(button1);
+		frame.add(input1);
+		frame.add(input2);
+		frame.add(soilderLab);
+		frame.add(tanksLab);
+		frame.add(soilderBut);
+		frame.add(tankBut);
+		frame.add(turnLab);
+		frame.add(nextTurn);
+		frame.add(totalMoney);
+		frame.add(input1Info);
+		frame.add(input2Info);
+		frame.add(tankFacBut);
+		frame.add(barracksBut);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+	public static void Soilder(Graphics g, int x, int y) {
+		g.drawImage(Soilder, x + 27, y + 2 * squareRoot - 18, 15, 15, null);
+	}
+
+	public static void controlPoint(Graphics g, int x, int y) {
+		g.drawImage(Industry, x + 17, y + 7, 15, 15, null);
+	}
+
+	public static void layoutTiles(Graphics g) {
+		short x = 75;
+		short y = 50;
+		int hexNum = -1;
+		while (y < 540) {
+			while (x < 800) {
+				hexNum++;
+				if (tileColor[hexNum] == 1) {
+					hexagon("red", g, x, y);
+				} else if (tileColor[hexNum] == 2) {
+					hexagon("blue", g, x, y);
+				} else {
+					hexagon("gray", g, x, y);
+				}
+				if (troopGraph[hexNum] == true) {
+					Soilder(g, x, y);
+				}
+				if (barracks[hexNum] == true || tankFac[hexNum] == true) {
+					specialHex(g, x, y);
+				}
+				if (controlPoints[hexNum] == true) {
+					controlPoint(g, x, y);
+				}
+				x += 150;
+			}
+			x = 150;
+			y += squareRoot;
+			while (x < 800) {
+				hexNum++;
+				if (tileColor[hexNum] == 1) {
+					hexagon("red", g, x, y);
+				} else if (tileColor[hexNum] == 2) {
+					hexagon("blue", g, x, y);
+				} else {
+					hexagon("gray", g, x, y);
+				}
+				if (troopGraph[hexNum] == true) {
+					Soilder(g, x, y);
+				}
+				if (barracks[hexNum] == true || tankFac[hexNum] == true) {
+					specialHex(g, x, y);
+				}
+				if (controlPoints[hexNum] == true) {
+					controlPoint(g, x, y);
+				}
+				x += 150;
+			}
+			x = 75;
+			y += squareRoot;
+		}
+		y -= squareRoot;
+	}
+
+	public static void LayoutLabels() {
+		int x = 75;
+		int y = 50;
+		JButton[] info = new JButton[60];
+		byte infoNum = 0;
+		while (y < 540) {
+			while (x < 800) {
+				String stTile = String.valueOf(infoNum + 1);
+				info[infoNum] = new JButton(stTile);
+				info[infoNum].setBounds(x - 4, y + squareRoot - 15, 57, 30);
+				info[infoNum].addActionListener(actionListener);
+				frame.add(info[infoNum]);
+				infoNum++;
+				x += 150;
+			}
+			x = 150;
+			y += squareRoot;
+			while (x < 800) {
+				String stTile = String.valueOf(infoNum + 1);
+				info[infoNum] = new JButton(stTile);
+				info[infoNum].setBounds(x - 4, y + squareRoot - 15, 57, 30);
+				info[infoNum].addActionListener(actionListener);
+				frame.add(info[infoNum]);
+				infoNum++;
+				x += 150;
+			}
+			x = 75;
+			y += squareRoot;
+		}
+	}
+
+	public static void specialHex(Graphics g, int x, int y) {
+		g.drawImage(Tent, x + 7, y + 2 * squareRoot - 18, 15, 15, null);
+	}
+
+	public static void infoReset() {
+		String troopCount = "error";
+		int showTroops = redtroops[currentTile - 1] + bluetroops[currentTile - 1];
+		troopCount = String.valueOf(showTroops);
+		if (barracks[currentTile - 1] == true && tankFac[currentTile - 1] != true) {
+			info.setText("This is Tile " + currentTile + "\nThis tile has a Barracks \nThis tile has " + troopCount
+					+ " troops");
+		} else if (tankFac[currentTile - 1] == true && barracks[currentTile - 1] != true) {
+			info.setText("This is Tile " + currentTile + "\nThis tile has a Tank Factory \n This tile has " + troopCount
+					+ " troops");
+		} else if (barracks[currentTile - 1] == true && tankFac[currentTile - 1] == true) {
+			info.setText("This is Tile " + currentTile + "\nThis tile has a Tank Factory" + "\n"
+					+ "This tile has a Barracks" + "\nThis tile has " + troopCount + " troops");
+		} else {
+			info.setText("This is Tile " + currentTile + "\nThis tile has nothing \nThis tile has " + troopCount
+					+ " troops");
+		}
+	}
+
+	public static void fightForATile(int moveTo, boolean turn) {
+		double redFight = redtroops[moveTo - 1];
+		double blueFight = bluetroops[moveTo - 1];
+		double finalLife = 0;
+		if (redFight > blueFight) {
+			finalLife = (blueFight / (redFight / blueFight));
+			redFight -= finalLife;
+			bluetroops[moveTo - 1] = 0;
+			if (redFight % 1 == 0) {
+				redtroops[moveTo - 1] = (byte) redFight;
+			} else {
+				int rand = (int) (Math.random() * 10);
+				if (rand >= 7) {
+					redFight++;
+				}
+				redtroops[moveTo - 1] = (byte) redFight;
+			}
+			troopGraph[moveTo - 1] = true;
+			tileColor[moveTo - 1] = 1;
+			if (redtroops[currentTile - 1] + bluetroops[currentTile - 1] == 0) {
+				troopGraph[currentTile - 1] = false;
+			} else {
+				troopGraph[currentTile - 1] = true;
+			}
+		} else if (redFight < blueFight) {
+			finalLife = (redFight / (blueFight / redFight));
+			blueFight -= finalLife;
+			redtroops[moveTo - 1] = 0;
+			if (blueFight % 1 == 0) {
+				bluetroops[moveTo - 1] = (byte) blueFight;
+			} else {
+				int rand = (int) (Math.random() * 10);
+				if (rand > 7) {
+					blueFight++;
+				}
+				bluetroops[moveTo - 1] = (byte) blueFight;
+			}
+			troopGraph[moveTo - 1] = true;
+			tileColor[moveTo - 1] = 2;
+			if (bluetroops[currentTile - 1] + redtroops[currentTile - 1] == 0) {
+				troopGraph[currentTile - 1] = false;
+			} else {
+				troopGraph[currentTile - 1] = true;
+			}
+		} else {
+			redtroops[moveTo - 1] = 0;
+			bluetroops[moveTo - 1] = 0;
+			troopGraph[moveTo - 1] = false;
+			troopGraph[currentTile - 1] = false;
+		}
+	}
+
+	public static void reset() {
+		info.setVisible(false);
+		soilderLab.setText("");
+		soilderLab.setVisible(false);
+		tanksLab.setText("");
+		tanksLab.setVisible(false);
+		soilderBut.setVisible(false);
+		tankBut.setVisible(false);
+		barracksBut.setVisible(false);
+		tankFacBut.setVisible(false);
+		button1.setVisible(false);
+		input1.setVisible(false);
+		input1.setText("");
+		input2.setVisible(false);
+		input2.setText("");
+		input1Info.setVisible(false);
+		input2Info.setVisible(false);
+	}
+
+	static ActionListener actionListener = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			if (started == true) {
+				JButton button = (JButton) event.getSource();
+				String num = button.getText();
+				int tileNum = Integer.parseInt(num);
+				currentTile = (byte) tileNum;
+				reset();
+				if (barracks[tileNum - 1] == true && tankFac[tileNum - 1] != true) {
+					yesBarracks(tileNum);
+				} else if (tankFac[tileNum - 1] == true && barracks[tileNum - 1] != true) {
+					yestankFac(tileNum);
+				} else if (barracks[tileNum - 1] == true && tankFac[tileNum - 1] == true) {
+					yesEverything(tileNum);
+				} else {
+					noNothing(tileNum);
+				}
+				wrongColorInfo();
+			}
+		}
+	};
+
+	static ActionListener nextListener = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			turn();
+		}
+	};
+
+	static ActionListener colorChanger = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			Graphics g = g1;
+			int moveTo = 0;
+			int moveThem = 0;
+			try {
+				moveTo = Integer.parseInt(input1.getText());
+				moveThem = Integer.parseInt(input2.getText());
+			} catch (NumberFormatException e) {
+				JOptionPane.showMessageDialog(null, e.getMessage() , "InfoBox: " + "Error formed", JOptionPane.INFORMATION_MESSAGE);
+				return;
+			}
+			if (correctMove(moveTo)) {
+				if (turn == false) {
+					if (redtroops[currentTile - 1] >= moveThem && moveThem > 0) {
+						movable[moveTo - 1] = true;
+						redtroops[moveTo - 1] = (byte) (redtroops[moveTo - 1] + moveThem);
+						redtroops[currentTile - 1] = (byte) (redtroops[currentTile - 1] - moveThem);
+						if (redtroops[moveTo - 1] > 0 && bluetroops[moveTo - 1] > 0) {
+							fightForATile(moveTo, false);
+						} else {
+							troopGraph[moveTo - 1] = true;
+							tileColor[moveTo - 1] = 1;
+							if (redtroops[currentTile - 1] == 0) {
+								troopGraph[currentTile - 1] = false;
+							} else {
+								troopGraph[currentTile - 1] = true;
+							}
+						}
+					}
+				} else {
+					if (bluetroops[currentTile - 1] >= moveThem && moveThem > 0) {
+						movable[moveTo - 1] = true;
+						bluetroops[moveTo - 1] = (byte) (bluetroops[moveTo - 1] + moveThem);
+						bluetroops[currentTile - 1] = (byte) (bluetroops[currentTile - 1] - moveThem);
+						if (redtroops[moveTo - 1] > 0 && bluetroops[moveTo - 1] > 0) {
+							fightForATile(moveTo, false);
+						} else {
+							troopGraph[moveTo - 1] = true;
+							tileColor[moveTo - 1] = 2;
+							if (bluetroops[currentTile - 1] == 0) {
+								troopGraph[currentTile - 1] = false;
+							} else {
+								troopGraph[currentTile - 1] = true;
+							}
+						}
+					}
+				}
+				if (bluetroops[currentTile - 1] == 0 && redtroops[currentTile - 1] == 0) {
+					button1.setVisible(false);
+					input1.setVisible(false);
+					input1Info.setVisible(false);
+					input2.setVisible(false);
+					input2Info.setVisible(false);
+				}
+				infoReset();
+				layoutTiles(g);
+				canvas.setBounds(0, 0, 25, 25);
+				canvas.setBounds(0, 0, 1500, 700);
+				input2.setText("0");
+			} else {
+				JOptionPane.showMessageDialog(null, "Can't Move There" , "InfoBox: " + "Moving Error", JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
+	};
+
+	static ActionListener btf = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			Graphics g = g1;
+			if (turn) {
+				if (blueMoney >= 30) {
+					tankFac[currentTile - 1] = true;
+					blueMoney -= 30;
+					totalMoney.setText("Blue Money: " + blueMoney);
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+					if (tankFac[currentTile - 1] == true && barracks[currentTile - 1] == true) {
+						yesEverything(currentTile);
+					} else {
+						yestankFac(currentTile);
+					}
+				}
+			} else {
+				if (redMoney >= 30) {
+					tankFac[currentTile - 1] = true;
+					redMoney -= 30;
+					totalMoney.setText("Red Money: " + redMoney);
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+					if (tankFac[currentTile - 1] == true && barracks[currentTile - 1] == true) {
+						yesEverything(currentTile);
+					} else {
+						yestankFac(currentTile);
+					}
+				}
+			}
+		}
+	};
+
+	static ActionListener bb = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			Graphics g = g1;
+			if (turn) {
+				if (blueMoney >= 15) {
+					barracks[currentTile - 1] = true;
+					blueMoney -= 15;
+					totalMoney.setText("Blue Money: " + blueMoney);
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+					if (tankFac[currentTile - 1] == true && barracks[currentTile - 1] == true) {
+						yesEverything(currentTile);
+					} else {
+						yesBarracks(currentTile);
+					}
+				}
+			} else {
+				if (redMoney >= 15) {
+					barracks[currentTile - 1] = true;
+					redMoney -= 15;
+					totalMoney.setText("Red Money: " + redMoney);
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+					if (tankFac[currentTile - 1] == true && barracks[currentTile - 1] == true) {
+						yesEverything(currentTile);
+					} else {
+						yesBarracks(currentTile);
+					}
+				}
+			}
+		}
+	};
+
+	static ActionListener bs = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			Graphics g = g1;
+			if (turn) {
+				if (blueMoney >= 5) {
+					bluetroops[currentTile - 1] += 1;
+					blueMoney -= 5;
+					totalMoney.setText("Blue Money: " + blueMoney);
+					troopGraph[currentTile - 1] = true;
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+				}
+			} else {
+				if (redMoney >= 5) {
+					redtroops[currentTile - 1] += 1;
+					redMoney -= 5;
+					totalMoney.setText("Red Money: " + redMoney);
+					troopGraph[currentTile - 1] = true;
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+				}
+			}
+		}
+	};
+
+	static ActionListener bt = new ActionListener() {
+		public void actionPerformed(ActionEvent event) {
+			Graphics g = g1;
+			if (turn) {
+				if (blueMoney >= 10) {
+					bluetroops[currentTile - 1] += 3;
+					blueMoney -= 10;
+					totalMoney.setText("Blue Money: " + blueMoney);
+					troopGraph[currentTile - 1] = true;
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+				}
+			} else {
+				if (redMoney >= 10) {
+					redtroops[currentTile - 1] += 3;
+					redMoney -= 10;
+					totalMoney.setText("Red Money: " + redMoney);
+					troopGraph[currentTile - 1] = true;
+					layoutTiles(g);
+					canvas.setBounds(0, 0, 25, 25);
+					canvas.setBounds(0, 0, 1500, 700);
+					infoReset();
+				}
+			}
+		}
+	};
+
+	public static void yestankFac(int tileNum) {
+		info.setVisible(true);
+		String troopCount = "error";
+		int showTroops = redtroops[tileNum - 1] + bluetroops[tileNum - 1];
+		troopCount = String.valueOf(showTroops);
+		info.setText("This is Tile " + tileNum + "\nThis tile has a Tank Factory \n This tile has " + troopCount
+				+ " troops");
+		info.setEditable(false);
+		tankBut.setVisible(true);
+		tanksLab.setVisible(true);
+		tanksLab.setText("Buy Tanks (10)");
+		barracksBut.setVisible(true);
+		soilderLab.setVisible(true);
+		soilderLab.setText("Buy Barracks (15)");
+		if (Integer.valueOf(troopCount) > 0 && movable[currentTile - 1] == false) {
+			button1.setVisible(true);
+			button1.addActionListener(colorChanger);
+			input1.setVisible(true);
+			input2.setVisible(true);
+			input1Info.setVisible(true);
+			input2Info.setVisible(true);
+		}
+	}
+
+	public static void yesEverything(int tileNum) {
+		info.setVisible(true);
+		String troopCount = "error";
+		int showTroops = redtroops[tileNum - 1] + bluetroops[tileNum - 1];
+		troopCount = String.valueOf(showTroops);
+		info.setText("This is Tile " + tileNum + "\nThis tile has a Tank Factory" + "\n" + "This tile has a Barracks"
+				+ "\nThis tile has " + troopCount + " troops");
+		info.setEditable(false);
+		tankBut.setVisible(true);
+		tanksLab.setVisible(true);
+		tanksLab.setText("Buy Tanks (10)");
+		soilderBut.setVisible(true);
+		soilderLab.setVisible(true);
+		soilderLab.setText("Buy Troops (5)");
+		if (Integer.valueOf(troopCount) > 0 && movable[currentTile - 1] == false) {
+			button1.setVisible(true);
+			button1.addActionListener(colorChanger);
+			input1.setVisible(true);
+			input2.setVisible(true);
+			input1Info.setVisible(true);
+			input2Info.setVisible(true);
+		}
+	}
+
+	public static void yesBarracks(int tileNum) {
+		info.setVisible(true);
+		String troopCount = "error";
+		int showTroops = redtroops[tileNum - 1] + bluetroops[tileNum - 1];
+		troopCount = String.valueOf(showTroops);
+		info.setText(
+				"This is Tile " + tileNum + "\nThis tile has a Barracks \nThis tile has " + troopCount + " troops");
+		info.setEditable(false);
+		tankFacBut.setVisible(true);
+		tanksLab.setVisible(true);
+		tanksLab.setText("Buy Tank Factory (30)");
+		soilderBut.setVisible(true);
+		soilderLab.setVisible(true);
+		soilderLab.setText("Buy Troops (5)");
+		if (Integer.valueOf(troopCount) > 0 && movable[currentTile - 1] == false) {
+			button1.setVisible(true);
+			button1.addActionListener(colorChanger);
+			input1.setVisible(true);
+			input2.setVisible(true);
+			input1Info.setVisible(true);
+			input2Info.setVisible(true);
+		}
+	}
+
+	public static void noNothing(int tileNum) {
+		info.setVisible(true);
+		String troopCount = "error";
+		int showTroops = redtroops[tileNum - 1] + bluetroops[tileNum - 1];
+		troopCount = String.valueOf(showTroops);
+		info.setText("This is Tile " + tileNum + "\nThis tile has nothing \nThis tile has " + troopCount + " troops");
+		info.setEditable(false);
+		tankFacBut.setVisible(true);
+		tanksLab.setVisible(true);
+		tanksLab.setText("Buy Tank Factory (30)");
+		barracksBut.setVisible(true);
+		soilderLab.setVisible(true);
+		soilderLab.setText("Buy Barracks (15)");
+		if (Integer.valueOf(troopCount) > 0 && movable[currentTile - 1] == false) {
+			button1.setVisible(true);
+			button1.addActionListener(colorChanger);
+			input1.setVisible(true);
+			input2.setVisible(true);
+			input1Info.setVisible(true);
+			input2Info.setVisible(true);
+		}
+	}
+
+	public static void printMoney() {
+		if (turn) {
+			String money = String.valueOf(blueMoney);
+			totalMoney.setText("Blue Money: " + money);
+		} else {
+			String money = String.valueOf(redMoney);
+			totalMoney.setText("Red Money: " + money);
+		}
+	}
+
+	public static void main(String[] args) {
+		canvas.setSize(1500, 700);
+		LayoutLabels();
+		initialize();
+		frame.add(canvas);
+		frame.pack();
+		frame.setVisible(true);
+	}
+
+	public void paint(Graphics g) {
+		layout(g);
+		g1 = g;
+	}
+
+	@Override
+	public void update(LineEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+}
+/*
+ * soilderLab.setBounds(1000, 125, 200, 40); tankButt.setBounds(850, 190, 100,
+ * 40); tanksLab.setBounds(1000, 190, 200, 40); soilderButt.setBounds(850, 125,
+ * 100, 40); soilderLab.setBounds(1000, 125, 200, 40); input1.setBounds(1000,
+ * 255, 50, 40); input2.setBounds(1000, 320, 50, 40); input1Info.setBounds(1075,
+ * 255, 200, 40); input2Info.setBounds(1075, 320, 200, 40); info.setBounds(850,
+ * 50, 300, 50);
+ */
